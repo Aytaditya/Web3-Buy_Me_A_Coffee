@@ -1,6 +1,6 @@
-# Blockchain Coffee Donation App
+# Web3 Buy Me A Coffee
 
-A decentralized "Buy Me a Coffee" application built using **Next.js**, **Thirdweb**, **Tailwind CSS**, and blockchain technology. This app allows users to connect their wallets, interact with smart contracts, and make donations seamlessly.
+A decentralized "Buy Me a Coffee" application built using **Next.js**, **Thirdweb**,**Typescript**, **Tailwind CSS**, and blockchain technology. This app allows users to connect their wallets, interact with smart contracts, and make donations seamlessly.
 
 ![Landing Page](./Landing.png)
 ![Tip Section](./TipSection.png)
@@ -12,8 +12,8 @@ A decentralized "Buy Me a Coffee" application built using **Next.js**, **Thirdwe
 - **Responsive UI:** Designed with Tailwind CSS for a seamless experience across devices.
 
 ## Tech Stack
-- **Frontend:** Next.js
-- **Blockchain Integration:** Thirdweb
+- **Frontend:** Next.js, Typescript, thirdweb
+- **Blockchain Integration:** Thirdweb, Solidity
 - **UI Design:** Tailwind CSS
 
 ---
