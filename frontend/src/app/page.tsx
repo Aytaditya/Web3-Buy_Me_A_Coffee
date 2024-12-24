@@ -59,7 +59,7 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Coffee className="w-6 h-6 text-amber-500" />
-            <span className="text-zinc-200 font-bold">Web3 Buy Me A Coffee</span>
+            <span className="text-zinc-200 font-bold">Coffee Support</span>
           </div>
           <div >
             <BuyMeCoffee />
@@ -77,7 +77,7 @@ export default function Home() {
             </div>
             
             <h1 className="text-5xl font-bold text-amber-500">
-              Buy Me A Coffee
+              Web3 Buy Me A Coffee
             </h1>
             
             <p className="text-lg text-zinc-400 leading-relaxed">
@@ -111,6 +111,10 @@ export default function Home() {
             <ConnectEmbed client={client} chain={chain} />
           </div>
         </div>
+      </div>
+
+      <div className="text-4xl flex justify-center items-center py-2 pb-16 mt-12 text-amber-500 font-semibold tracking-tight">
+        Till now, {totalCoffee} coffees have been supported 😉 !!
       </div>
 
       
@@ -259,9 +263,7 @@ export default function Home() {
           </div>
         </div>
       </div>
-      <div className="text-3xl flex justify-center items-center py-2 pb-16 text-amber-500 font-semibold tracking-tight">
-        Till now, {totalCoffee} coffees have been supported 😉 !!
-      </div>
+      
       <Footer />
     </div>
   );
