@@ -7,6 +7,9 @@ import BuyMeCoffee from "../../components/BuyMeCoffee";
 import { Coffee, Clock } from 'lucide-react';
 import { useState } from "react";
 import Footer from "../../components/Footer";
+import { TransactionButton, useContractEvents, useReadContract } from "thirdweb/react";
+import { prepareContractCall, toWei } from "thirdweb";
+import { contract } from "../../utils/contract";
 
 // Sample recent tips data
 const recentTips = [
@@ -18,17 +21,36 @@ const recentTips = [
 export default function Home() {
   const [tipAmount, setTipAmount] = useState(0);
   const [message, setMessage] = useState("");
-  const [amount, setAmount] = useState('')
+  const [amount, setAmount] = useState<number>(0);
+
+  const {data:totalCoffee,refetch:refetchTotalCoffee}=useReadContract({
+    contract:contract,
+    method:"getTotalCoffee",
+  })
+
+  const {data:contractEvents,refetch:refetchContractEvents}=useContractEvents({
+    contract:contract
+  })
+
+  const truncateWalletAddress = (address: string) => {
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  };
+  
+  const convertDate = (timestamp: bigint) => {
+    const timestampNumber = Number(timestamp);
+    return new Date(timestampNumber * 1000).toLocaleString();
+};
+
+  console.log(contractEvents)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    const numericAmount = parseFloat(amount); // Convert string to number
-  if (isNaN(numericAmount) || numericAmount <= 0) {
-    alert("Please enter a valid amount to tip");
-    return;
-  }
+    if(amount === 0){
+      alert("Please enter a valid amount to tip")
+      return;
+    }
     console.log({ message, amount })
-  }
+  };
 
   return (
     <div className="min-h-screen bg-zinc-900">
@@ -39,7 +61,7 @@ export default function Home() {
             <Coffee className="w-6 h-6 text-amber-500" />
             <span className="text-zinc-200 font-bold">Web3 Buy Me A Coffee</span>
           </div>
-          <div>
+          <div >
             <BuyMeCoffee />
           </div>
         </div>
@@ -91,39 +113,52 @@ export default function Home() {
         </div>
       </div>
 
+      
+
       {/* Tip Form and Recent Tips Section */}
-      <div className="max-w-6xl mx-auto px-4 pb-24  my-10">
+      <div className="max-w-6xl mx-auto px-4 pb-24">
         <div className="grid md:grid-cols-2 gap-12">
           {/* Left Column - Recent Tips */}
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-zinc-200 uppercase">Recent Supporters</h2>
+            <h2 className="text-2xl font-bold text-zinc-200 flex items-center justify-center">Recent Supporters</h2>
+
             <div className="space-y-4">
-              {recentTips.map((tip, index) => (
-                <div 
-                  key={index} 
-                  className="p-4 rounded-lg border border-zinc-800 bg-zinc-900/50 space-y-2"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-amber-500 font-medium">{tip.address}</span>
-                    <span className="text-zinc-400">{tip.amount}</span>
-                  </div>
-                  <p className="text-zinc-300">{tip.message}</p>
-                  <div className="flex items-center gap-1 text-zinc-500 text-sm">
-                    <Clock className="w-4 h-4" />
-                    <span>{tip.time}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
+              {/* this is recent tip mapping section */}
+  {contractEvents && contractEvents.length > 0 ? (
+    [...contractEvents].reverse().map((event, index) =>  (
+      <div
+        key={index}
+        className="p-4 rounded-lg border border-zinc-800 bg-zinc-900/50 space-y-2"
+      >
+        <div className="flex items-center justify-between">
+          <span className="text-amber-500 font-medium">
+            {/* @ts-ignore */}
+            {truncateWalletAddress(event.args?.sender || "0x0000")}
+          </span>
+          
+        </div>
+        {/* @ts-ignore */}
+        <p className="text-zinc-300">{event.args?.message || "No message provided."}</p>
+        <div className="flex items-center gap-1 text-zinc-500 text-sm">
+          <Clock className="w-4 h-4" />
+          {/* @ts-ignore */}
+          <span>{convertDate(event.args.timestamp)}</span>
+        </div>
+      </div>
+    ))
+  ) : (
+    <p className="text-zinc-500 text-center">No tips received yet.</p>
+  )}
+</div>
           </div>
 
           {/* Right Column - Tip Form */}
           <div className="space-y-8">
-            <h2 className="text-2xl font-bold text-zinc-300 uppercase flex justify-center">Send a Tip</h2>
+            <h2 className="text-2xl font-bold text-zinc-200 flex items-center justify-center">Send a Tip</h2>
             
             {/* Preset amounts */}
-            <div className="grid grid-cols-3 gap-4 ">
-              {['0.001', '0.005', '0.01'].map((value) => (
+            <div className="grid grid-cols-3 gap-4">
+              {[0.001, 0.005, 0.01].map((value) => (
                 <button
                   key={value}
                   onClick={() => setAmount(value)}
@@ -135,7 +170,7 @@ export default function Home() {
                 >
                   <div className="text-lg font-medium">{value} ETH</div>
                   <div className="text-sm opacity-60">
-                    ≈ ${(parseFloat(value) * 2000).toFixed(2)}
+                    ≈ ${(value * 2000).toFixed(2)}
                   </div>
                 </button>
               ))}
@@ -148,7 +183,7 @@ export default function Home() {
                 <input
                   type="number"
                   value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
+                  onChange={(e) => setAmount(Number(e.target.value))}
                   placeholder="0.00"
                   step="0.001"
                   min="0"
@@ -169,13 +204,45 @@ export default function Home() {
               </div>
 
               {/* Submit button */}
-              <button
+              {/* <button
                 type="submit"
                 className="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-zinc-900 font-medium py-3 px-4 rounded-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
               >
                 <Coffee className="w-5 h-5" />
                 Send Tip
-              </button>
+              </button> */}
+              <TransactionButton 
+  transaction={() => prepareContractCall({
+    contract: contract,
+    method: "byMeACoffee",
+    params: [message],
+    value: BigInt(toWei(amount.toString()))
+  })} 
+  onTransactionConfirmed={() => {
+    alert("Transaction Confirmed");
+    setAmount(0);
+    setMessage("");
+  }}
+  style={{
+    width: "100%",
+    background: "linear-gradient(to right, #f59e0b, #d97706)", // Matches bg-gradient-to-r
+    color: "#111827", // Matches text-zinc-900
+    fontWeight: "500", // Matches font-medium
+    padding: "12px 16px", // Matches py-3 px-4
+    borderRadius: "8px", // Matches rounded-lg
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "8px", // Matches gap-2
+    transition: "opacity 0.2s", // Matches hover:opacity-90 transition-opacity
+  }}
+  
+>
+  
+  Buy Me A Coffee 
+</TransactionButton>
+
+
             </form>
 
             {/* Transaction info */}
@@ -189,10 +256,11 @@ export default function Home() {
                 <span>~30 seconds</span>
               </div>
             </div>
-
           </div>
-
         </div>
+      </div>
+      <div className="text-3xl flex justify-center items-center py-2 pb-16 text-amber-500 font-semibold tracking-tight">
+        Till now, {totalCoffee} coffees have been supported 😉 !!
       </div>
       <Footer />
     </div>

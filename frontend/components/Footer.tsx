@@ -1,6 +1,12 @@
 import React from 'react'
+import { useReadContract } from 'thirdweb/react'
+import { contract } from '../utils/contract'
 
 const Footer = () => {
+  const {data:totalCoffee,refetch:refetchTotalCoffee}=useReadContract({
+    contract:contract,
+    method:"getTotalCoffee",
+  })
   return (
     <div>
       {/* Footer */}
@@ -10,6 +16,9 @@ const Footer = () => {
             Powered by secure blockchain technology
           </span>
           <div className="flex items-center gap-4 text-zinc-400">
+            <span className='text-amber-500 font-semibold uppercase'>
+              {totalCoffee} Coffees Supported
+            </span>
             <a href="#" className="hover:text-zinc-200 transition-colors">Terms</a>
             <a href="#" className="hover:text-zinc-200 transition-colors">Privacy</a>
             <a 
